@@ -1,0 +1,182 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct hucre{
+    int icerik; //listedeki elemanın icindeki veriyi gösterir.
+    struct hucre *sonraki; //sonraki elemanı gösteren isaretçi.
+};
+
+struct hucre *hucre_olustur(int icerik){
+    struct hucre *a;
+    a=(struct hucre*)malloc(sizeof(struct hucre));
+    if(a==NULL){
+        printf("Heap alaninda yer ayrilamadi...\n");
+        exit(1);
+    }
+    a->icerik=icerik;
+    a->sonraki=NULL;
+}
+
+void liste_basina_ekle(int icerik,struct hucre **liste_basi){
+    struct hucre* a=hucre_olustur(icerik);
+    a->sonraki=*liste_basi; //liste başının adresi yollandığı icin "*" ile gösterilir.
+    *liste_basi=a;
+
+}
+
+void liste_yaz(struct hucre *liste_basi){
+    while(liste_basi!=NULL){ //liste basi NULL'ı gösterene kadar listeyi dolaşacak.(listenin sonuna ulaşıldı mı? diye.)
+        printf("%4d",liste_basi->icerik);
+        liste_basi=liste_basi->sonraki;
+    }
+    printf("\n");
+}
+
+void liste_sonuna_ekle(int icerik,struct hucre **liste_basi){
+    struct hucre* a=hucre_olustur(icerik);
+    if(*liste_basi==NULL){
+        a->sonraki=*liste_basi;
+        *liste_basi=a;
+    }
+    else{
+        struct hucre *x=*liste_basi;
+        while(x->sonraki!=NULL){
+                x=x->sonraki;
+        }
+        x->sonraki=a;
+        a->sonraki=NULL;
+    }
+}
+
+void liste_yaz_recursive(struct hucre *liste_basi){
+    int i=0;
+    if(liste_basi!=NULL){
+        i=1;
+        printf("%4d",liste_basi->icerik);
+        liste_yaz_recursive(liste_basi->sonraki);//Burada kendini çağırıyor.
+    }
+    else{
+    printf("\n");
+    }
+
+}
+
+void tersten_liste_yaz_recursive(struct hucre *liste_basi){
+    if(liste_basi!=NULL){
+            tersten_liste_yaz_recursive(liste_basi->sonraki);
+            printf("%4d",liste_basi->icerik);
+    }
+    else {
+        printf("\n");
+    }
+}
+
+void liste_sil(struct hucre **liste_basi){
+    struct hucre *simdiki;
+    while(*liste_basi!=NULL){
+        simdiki=*(liste_basi);
+        *liste_basi=(*liste_basi)->sonraki;
+        free(simdiki);
+        }
+}
+void liste_eleman_sil(int silinen, struct hucre **liste_basi){
+    struct hucre * temp=*liste_basi;
+    struct hucre *once;
+    while(temp!=NULL && temp->icerik!=silinen){
+        once =temp;
+        temp=temp->sonraki;
+    }
+    if(temp==NULL){
+        return;
+    }else{
+        if(temp==*liste_basi) (*liste_basi)=(*liste_basi)->sonraki;
+        else once->sonraki=temp->sonraki;
+        free(temp);
+    }
+}
+
+void liste_sirali_ekle(int icerik, struct hucre **liste_basi){
+    struct hucre *a, *b, *eklenen;
+    b=*liste_basi;
+    while(b!=NULL && b->icerik <= icerik){
+        if (b->icerik==icerik) return; //aynı elemanı eklemeye çalışınca ekleme yapmayacak.
+        a=b;
+        b=b->sonraki;
+    }
+    eklenen=hucre_olustur(icerik);
+    if(b==*liste_basi){
+        eklenen->sonraki=*liste_basi;
+        *liste_basi=eklenen;
+    }else{
+        a->sonraki=eklenen;
+        eklenen->sonraki=b;
+    }
+}
+
+void liste_sirala(struct hucre **liste_basi){
+    struct hucre *a, *b, *c, *d;
+
+    if (*liste_basi == NULL || (*liste_basi)->sonraki == NULL) return;
+
+    d=(*liste_basi)->sonraki;
+    (*liste_basi)->sonraki=NULL;
+
+    while (d != NULL){
+        c=d;
+        d=d->sonraki;
+        b=(*liste_basi);
+        while (b!=NULL && b->icerik < c->icerik) {
+            a=b;
+            b=b->sonraki;
+        }
+        if(b==*liste_basi){
+            c->sonraki=*liste_basi;
+            *liste_basi=c;
+        }else{
+            a->sonraki=c;
+            c->sonraki=b;
+        }
+    }
+}
+
+void liste_ters_cevir(struct hucre **liste_basi){
+
+    struct hucre *a,*b;
+    a=NULL;
+    while(*liste_basi!=NULL){
+        b=*liste_basi;
+        *liste_basi=(*liste_basi)->sonraki;
+        b->sonraki=a;
+        a=b;
+    }
+    *liste_basi=a;
+}
+int main()
+{
+    struct hucre* liste_basi=NULL;//liste_başi adında bir liste oluşturduk.
+    liste_basina_ekle(10,&liste_basi);//liste_basi'nın adresi ve iceriği yollanır.
+    liste_yaz(liste_basi);
+    liste_basina_ekle(14,&liste_basi);
+    liste_yaz(liste_basi);
+    liste_sonuna_ekle(30,&liste_basi);
+    liste_yaz(liste_basi);
+    liste_yaz_recursive(liste_basi); //Ekran çıktısı yine 14 10 30 olur.
+    tersten_liste_yaz_recursive(liste_basi);
+
+    liste_sil(&liste_basi);
+    liste_yaz_recursive(liste_basi);
+    liste_basina_ekle(3,&liste_basi);
+    liste_yaz_recursive(liste_basi);
+
+    struct hucre *liste1=NULL; //Liste1 adında yeni bir liste oluşturduk.
+    liste_sirali_ekle(200,&liste1);
+    liste_sirali_ekle(150,&liste1);
+    liste_sirali_ekle(250,&liste1);
+    liste_sirali_ekle(542,&liste1);
+    liste_sirali_ekle(542,&liste1); //Bunu ekrana yazmaz çünkü daha önce bu veri liste1'e eklendi.."(if (b->icerik==icerik) return;)" sayesinde.
+    liste_yaz(liste1);
+
+    liste_eleman_sil(150,&liste1);
+    liste_yaz(liste1);
+    return 0;
+}
